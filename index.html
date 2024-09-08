@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HLS.js Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #000;
+    }
+    video {
+      width: 80%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <video id="video" controls>
+    <source src="http://localhost:8000/vv/master.m3u8" type="application/x-mpegURL">
+  </video>
+
+  <script>
+    if (Hls.isSupported()) {
+      const video = document.getElementById('video');
+      const hls = new Hls();
+
+      // Replace with the path to your m3u8 file
+      const m3u8Url = 'http://localhost:8000/vv/master.m3u8';
+
+      hls.loadSource(m3u8Url);
+      hls.attachMedia(video);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        console.log('Manifest parsed');
+        // video.play(); // Video play might be restricted by browser autoplay policy
+      });
+
+      hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, (event, data) => {
+        console.log('Subtitle tracks updated:', data);
+        const subtitleTracks = hls.subtitleTracks;
+        console.log('Subtitle tracks:', subtitleTracks);
+        if (subtitleTracks.length > 0) {
+          console.log('Selecting subtitle track with ID:', subtitleTracks[0].id);
+          hls.selectSubtitle(subtitleTracks[0].id);
+        } else {
+          console.error('No subtitle tracks available');
+        }
+      });
+
+      hls.on(Hls.Events.SUBTITLE_TRACK_LOADED, (event, data) => {
+        console.log('Subtitle track loaded:', data);
+      });
+
+      hls.on(Hls.Events.SUBTITLE_CUES_PARSED, (event, data) => {
+        console.log('Subtitle cues parsed:', data);
+      });
+
+      hls.on(Hls.Events.SUBTITLE_CUE_PARSED, (event, data) => {
+        // Log subtitle cues to the console
+        console.log('Subtitle cue parsed:', data.cue);
+        console.log('Subtitle text:', data.cue.text);
+      });
+
+      hls.on(Hls.Events.SUBTITLE_STREAM_ENDED, (event, data) => {
+        console.log('Subtitle stream ended:', data);
+      });
+    } else {
+      console.error('HLS.js is not supported in this browser.');
+    }
+  </script>
+</body>
+</html>
